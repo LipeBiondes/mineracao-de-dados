@@ -47,14 +47,43 @@ tryCatch({
     install.packages("reshape2")
     library(reshape2)
   }
-  print("Todos os pacotes estão instalados")
+  
+  if (!requireNamespace("syuzhet", quietly = TRUE)) {
+    install.packages("syuzhet")
+    library(syuzhet)
+  }
+  
+  if (!requireNamespace("RColorBrewer", quietly = TRUE)) {
+    install.packages("RColorBrewer")
+    library(RColorBrewer)
+  }
+  
+  if (!requireNamespace("tm", quietly = TRUE)) {
+    install.packages("tm")
+    library(tm)
+  }
   
 },
 error = function(e) {
   cat("Erro:", conditionMessage(e), "\n")
 })
 
-#Conexao com o bd
+library(RSQLite)
+library(readr)
+library(dplyr)
+library(tidytext)
+library(stringr)
+library(lexiconPT)
+library(tm)
+library(rtweet)
+library(wordcloud)
+library(reshape2)
+library(syuzhet)
+library(RColorBrewer)
+library(tm)
+
+#Criando tabelas no banco
+
 tryCatch({
   imdb <- read_csv("imdb.csv")
   
@@ -77,3 +106,51 @@ tryCatch({
 error = function(e) {
   cat("Erro:", conditionMessage(e), "\n")
 })
+
+texto <-
+  scan(
+    file = 'https://raw.githubusercontent.com/programminghistorian/jekyll/gh-pages/assets/domCasmurro.txt',
+    fileEncoding = "UTF-8",
+    what = character(),
+    sep = "\n",
+    allowEscapes = T
+  )
+
+texto_palavras <- get_tokens(texto)
+
+head(texto_palavras)
+
+oracoes_vetor <- get_sentences(texto)
+
+length(oracoes_vetor)
+
+install.packages("httr")
+
+library(httr)
+library(jsonlite)
+
+# Fazendo uma requisição GET
+url <- "localhost:3333/texts"
+response <- GET(url = url)
+
+# Verificando o status da resposta
+if (status_code(response) == 200) {
+  # Convertendo o conteúdo JSON em um dataframe
+  data <- fromJSON(content(response, "text"), flatten = TRUE)
+  print(data)
+} else {
+  cat("Erro na requisição:", status_code(response))
+}
+
+
+print(oracao_1)
+dados <- list("title" = "value1",
+              "autor" = "value2",
+              "content" =)
+
+print(dados)
+
+sentimentos_df <-
+  get_nrc_sentiment(texto_palavras, language = "portuguese")
+
+summary(sentimentos_df)
