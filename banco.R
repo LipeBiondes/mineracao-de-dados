@@ -54,14 +54,20 @@ library(rtweet)
 
 #Criando tabelas no banco
 
+install.packages("RSQLite")
+install.packages("DBI")
+
+library(RSQLite)
+library(DBI)
+
+con <-
+  dbConnect(
+    RSQLite::SQLite(),
+    "C:/Users/UEPA_07/Documents/api-mineracao-texts-main/prisma/dev.db"
+  )
+
 tryCatch({
   imdb <- read_csv("imdb.csv")
-  
-  con <-
-    dbConnect(
-      RSQLite::SQLite(),
-      "C:/Users/UEPA_07/Documents/Mineracao-de-dados/quinto/aula/imdb.db"
-    )
   
   dbWriteTable(con, "imdb_data", imdb, overwrite = TRUE)
   
@@ -74,4 +80,26 @@ tryCatch({
   })
 }, error = function(e) {
   cat("Erro:", conditionMessage(e), "\n")
+})
+
+tryCatch({
+  # Nome da tabela no banco de dados
+  table_name <- "texts"
+  
+  # Ler a tabela
+  dados_tabela_texts <- dbReadTable(con, table_name)
+  
+  # Exibir os dados
+  print(dados_tabela_texts[4])
+  dados_tabela_texts[,dados_tabela_texts$content]
+
+  texto_tratado <- dados_tabela_texts$content[3]
+  
+  print(texto_tratado)
+  }, error = function(e) {
+  cat("Ocorreu um erro:", conditionMessage(e), "\n")
+}, finally = {
+  # Fechar a conexão com o banco de dados
+  dbDisconnect(con)
+  cat("Conexão com o banco de dados fechada.\n")
 })
