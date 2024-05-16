@@ -1,3 +1,18 @@
+install.packages("rvest")
+install.packages("stringr")
+install.packages("tidytext")
+install.packages("dplyr")
+install.packages("ggplot2")
+install.packages("tidyr")
+install.packages("tm")
+install.packages("NLP")
+install.packages("wordcloud")
+install.packages("wesanderson")
+install.packages("knitr")
+install.packages("rmarkdown")
+install.packages("kableExtra")
+install.packages("htmltools")
+install.packagesa("prettydoc")
 install.packages("wordcloud")
 install.packages("reshape2")
 install.packages("syuzhet")
@@ -51,18 +66,10 @@ print(transforme_sobre_texto)
 # tratamento
 texto_palavras <- get_tokens(texto)
 
-head(texto_palavras)
-
-oracoes_vetor <- get_sentences(texto)
-
-length(oracoes_vetor)
-
-print(texto_palavras)
-
-sentimentos_df <-
+sentimentos_df_dom_casmurro <-
   get_nrc_sentiment(texto_palavras, language = "portuguese")
 
-colnames(sentimentos_df) <- c(
+colnames(sentimentos_df_dom_casmurro) <- c(
   "raiva",
   "ansiedade",
   "desgosto",
@@ -75,4 +82,47 @@ colnames(sentimentos_df) <- c(
   "positivo"
 )
 
-summary(sentimentos_df)
+wordcloud(
+  transforme_sobre_texto,
+  scale = c(6, 0.8),
+  max.words = 20,
+  color = wes_palette("Royal1")
+)
+
+texto_df <- data_frame(text = transforme_sobre_texto)
+
+texto_token <- texto_df %>%
+  unnest_tokens(word, text)
+
+stopwords_portu_df <- data.frame(word = transforme_sobre_texto)
+
+
+texto_token <- texto_token %>%
+  anti_join(stopwords_portu_df, by = "word")
+
+texto_token %>%
+  count(word, sort = TRUE)
+
+texto_token %>%
+  count(word, sort = TRUE) %>%
+  filter(n > 90) %>%
+  mutate(word = reorder(word, n)) %>%
+  ggplot(aes(word, n)) +
+  
+  geom_col(fill = "#245968") +
+  xlab(NULL) +
+  coord_flip() +
+  labs(y = "Frequência Termos")
+
+barplot(
+  colSums(prop.table(sentimentos_df_dom_casmurro[, 1:8])),
+  space = 0.2,
+  horiz = FALSE,
+  las = 1,
+  cex.names = 0.7,
+  col = brewer.pal(n = 8, name = "Set3"),
+  main = "'Dom Casmurro' de Machado de Assis",
+  sub = "Análise realizado por Alefe Filipe",
+  xlab = "emoções",
+  ylab = NULL
+)
