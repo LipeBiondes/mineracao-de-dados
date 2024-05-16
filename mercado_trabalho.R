@@ -218,8 +218,8 @@ print(transforme_sobre_texto)
 
 wordcloud(
   transforme_sobre_texto,
-  scale = c(6, 0.5),
-  max.words = 40,
+  scale = c(7, 0.5),
+  max.words = 20,
   color = wes_palette("Royal1")
 )
 
@@ -238,8 +238,7 @@ corpus_texto <- tm_map(corpus_texto, removePunctuation)
 corpus_texto <- tm_map(corpus_texto, removeNumbers)
 corpus_texto <- tm_map(corpus_texto, removeWords, stopwords("pt"))
 
-dtm_texto <- DocumentTermMatrix(texto_tratado)
-dtm_texto
+dtm_texto <- DocumentTermMatrix(transforme_sobre_texto)
 
 texto_t <- read_html(
   c(
@@ -255,7 +254,7 @@ texto_df <- data_frame(text = texto_tidy)
 texto_token <- texto_df %>%
   unnest_tokens(word, text)
 
-stopwords_portu_df <- data.frame(word = texto_tratado)
+stopwords_portu_df <- data.frame(word = transforme_sobre_texto)
 
 texto_token <- texto_token %>%
   anti_join(stopwords_portu_df, by = "word")
