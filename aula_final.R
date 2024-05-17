@@ -1,0 +1,195 @@
+library(tidytext)
+library(ggplot2)
+library(wordcloud)
+library(dplyr)
+library(tm)
+library(RColorBrewer)
+library(wordcloud)
+library(reshape2)
+library(syuzhet)
+library(RColorBrewer)
+library(tm)
+library(openxlsx)
+library(rvest)
+library(stringr)
+library(tidytext)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(tm)
+library(NLP)
+library(wordcloud)
+library(wesanderson)
+library(knitr)
+library(rmarkdown)
+library(kableExtra)
+library(htmltools)
+library(prettydoc)
+
+# Função para carregar dicionário léxico
+load_lexicon <- function(file.path) {
+  lexicon <- scan(file.path, what = "character", comment.char = ";")
+  return(lexicon)
+}
+
+# Carregando dicionário léxico
+positive_words <- load_lexicon("./positive_words_pt.txt")
+negative_words <- load_lexicon("./negative_words_pt.txt")
+
+# Função para limpar o texto
+clean_text <- function(text) {
+  text <- tolower(text)
+  text <- removePunctuation(text)
+  text <- removeNumbers(text)
+  text <- removeWords(text, stopwords("pt"))
+  text <- stripWhitespace(text)
+  return(text)
+}
+
+# Texto a ser analisado
+text_clean <- clean_text(texto_9)
+text_clean_chat <- request_chat_clean(texto_9$texto_9)
+
+print(text_clean)
+print(text_clean_chat$content)
+
+# Função para calcular o sentimento
+calculate_sentiment <- function(text, positive_words, negative_words) {
+  positive_count <- sum(text %in% positive_words)
+  negative_count <- sum(text %in% negative_words)
+  sentiment_score <- positive_count - negative_count
+  if (sentiment_score > 0) {
+    sentiment <- "Positivo"
+  } else if (sentiment_score < 0) {
+    sentiment <- "Negativo"
+  } else {
+    sentiment <- "Neutro"
+  }
+  return(list(sentiment_score = sentiment_score, sentiment = sentiment))
+}
+
+# Calculando sentimento do texto limpo
+sentiment_info <- calculate_sentiment(strsplit(text_clean, " ")[[1]], positive_words, negative_words)
+
+# Criando corpus e limpando texto
+corpus <- Corpus(VectorSource(text_clean))
+corpus <- tm_map(corpus, content_transformer(tolower))
+corpus <- tm_map(corpus, removePunctuation)
+corpus <- tm_map(corpus, removeNumbers)
+corpus <- tm_map(corpus, removeWords, stopwords("pt"))
+corpus <- tm_map(corpus, stripWhitespace)
+words <- unlist(strsplit(as.character(corpus[[1]]$content), " "))
+
+# Frequência de palavras
+word_freq <- table(words)
+word_freq <- sort(word_freq, decreasing = TRUE)
+tokens_df <- data.frame(word = names(word_freq), freq = as.numeric(word_freq))
+
+# Frequência de palavras
+word_freq <- table(words)
+word_freq <- sort(word_freq, decreasing = TRUE)
+tokens_df <- data.frame(word = names(word_freq), freq = as.numeric(word_freq))
+
+# Filtrando palavras com frequência maior ou igual a 2
+tokens_df <- tokens_df %>% filter(freq >= 2)
+
+# Gráfico de frequência de palavras
+freq_plot <- ggplot(tokens_df, aes(x = reorder(word, -freq), y = freq)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Frequência de palavras", x = "Palavra", y = "Frequência") +
+  theme(axis.text.x = element_text(
+    angle = 90,
+    vjust = 0.5,
+    hjust = 1
+  ))
+print(freq_plot)
+
+
+# Calculando evolução dos sentimentos ao longo do texto
+sentiment_evolution <- data.frame(
+  word_count = seq_along(words),
+  positive_count = cumsum(words %in% positive_words),
+  negative_count = cumsum(words %in% negative_words)
+)
+
+# Gráfico da evolução dos sentimentos
+ggplot(sentiment_evolution, aes(x = word_count)) +
+  geom_line(aes(y = positive_count, color = "Positivo")) +
+  geom_line(aes(y = negative_count, color = "Negativo")) +
+  labs(title = "Evolução dos Sentimentos", x = "Posição do Texto", y = "Contagem") +
+  scale_color_manual(values = c("blue", "red"),
+                     labels = c("Positivo", "Negativo")) +
+  theme_minimal()
+
+# Nuvem de palavras
+wordcloud(
+  words,
+  min.freq = 2,
+  random.order = FALSE,
+  colors = brewer.pal(8, "Dark2")
+)
+
+# Imprimindo resultado
+cat("O texto é classificado como: ", sentiment_info$sentiment)
+
+texto_palavras_4 <- get_tokens(clean_text(texto_4$texto_4))
+
+sentimentos_texto_4 <-
+  get_nrc_sentiment(texto_palavras_4, language = "portuguese")
+
+colnames(sentimentos_texto_4) <- c(
+  "raiva",
+  "ansiedade",
+  "desgosto",
+  "medo",
+  "alegria",
+  "tristeza",
+  "surpresa",
+  "confianca",
+  "negativo",
+  "positivo"
+)
+
+barplot(
+  colSums(prop.table(sentimentos_texto_4[, 1:8])),
+  space = 0.2,
+  horiz = FALSE,
+  las = 1,
+  cex.names = 0.7,
+  col = brewer.pal(n = 8, name = "Set3"),
+  main = "Texto 4 - indelével",
+  sub = "Análise realizado por: Alefe Filipe",
+  xlab = "emoções",
+  ylab = NULL
+)
+
+texto_palavras_9 <- get_tokens(clean_text(texto_9$texto_9))
+
+sentimentos_texto_9 <-
+  get_nrc_sentiment(texto_palavras_9, language = "portuguese")
+
+colnames(sentimentos_texto_9) <- c(
+  "raiva",
+  "ansiedade",
+  "desgosto",
+  "medo",
+  "alegria",
+  "tristeza",
+  "surpresa",
+  "confianca",
+  "negativo",
+  "positivo"
+)
+
+barplot(
+  colSums(prop.table(sentimentos_texto_9[, 1:8])),
+  space = 0.2,
+  horiz = FALSE,
+  las = 1,
+  cex.names = 0.7,
+  col = brewer.pal(n = 8, name = "Set3"),
+  main = "Texto 9 - Camisa",
+  sub = "Análise realizado por: Alefe Filipe",
+  xlab = "emoções",
+  ylab = NULL
+)
